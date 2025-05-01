@@ -1,45 +1,66 @@
-from collections.abc import Sequence
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
+from fastapi.exceptions import HTTPException
 from sqlmodel import Field, SQLModel, Session, create_engine, select
 
 
-class Hero(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str
+class HeroBase(SQLModel):
+    name: str = Field(index=True)
     secret_name: str
-    age: int | None = None
+    age: int | None = Field(default=None, index=True)
+
+
+class Hero(HeroBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+
+class HeroCreate(HeroBase):
+    pass
+
+
+class HeroPublic(HeroBase):
+    id: int
 
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
+connect_args = {"check_same_thread": False}
 engine = create_engine(sqlite_url, echo=True)
 
-SQLModel.metadata.create_all(engine)
-session = Session(engine)
+
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
+
+
 app = FastAPI()
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+@app.on_event("startup")
+def on_startup():
+    create_db_and_tables()
 
 
-@app.get("/items/{id}")
-async def get_item(id: int):
-    return {"id": id}
+@app.post("/heroes/", response_model=HeroPublic)
+async def create_hero(hero: HeroCreate):
+    with Session(engine) as session:
+        db_hero = Hero.model_validate(hero)
+        session.add(db_hero)
+        session.commit()
+        session.refresh(db_hero)
+        return db_hero
 
 
-@app.put("/heros/")
-async def create_hero(name: str, secret_name: str, age: int | None = None):
-    session.add(Hero(name=name, secret_name=secret_name, age=age))
-    session.commit()
+@app.get("/heroes/", response_model=list[HeroPublic])
+def read_heroes(offset: int = 0, limit: int = Query(default=100, le=100)):
+    with Session(engine) as session:
+        heroes = session.exec(select(Hero).offset(offset).limit(limit)).all()
+        return heroes
 
-@app.get("/heros/")
-def get_heroes() -> Sequence[Hero]:
-   with Session(engine) as session:
-        statement = select(Hero)
-        results = session.exec(statement)
-        heroes = results.all()
-        return heroes 
+@app.get("/heroes/{hero_id}", response_model=HeroPublic)
+def read_hero(hero_id: int):
 
+    with Session(engine) as session:
+        hero = session.get(Hero, hero_id)
+        if not hero:
+            raise HTTPException(status_code=404, detail="Hero not found")
+        return hero
