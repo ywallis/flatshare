@@ -1,0 +1,51 @@
+from sqlmodel import Field, Relationship, SQLModel
+
+
+class ApartmentBase(SQLModel):
+    name: str
+
+
+class Apartment(ApartmentBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    users: list["User"] = Relationship(back_populates="apartment")
+
+
+class ApartmentPublic(ApartmentBase):
+    id: int
+
+
+class ApartmentCreate(ApartmentBase):
+    pass
+
+
+class ApartmentUpdate(SQLModel):
+    name: str | None = None
+
+
+class UserBase(SQLModel):
+    first_name: str
+    last_name: str
+    email: str
+    apartment_id: int | None = Field(default=None, foreign_key="apartment.id")
+
+
+class User(UserBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    hashed_password: str = Field()
+    apartment: Apartment | None = Relationship(back_populates="users")
+
+
+class UserPublic(UserBase):
+    id: int
+
+
+class UserCreate(UserBase):
+    password: str
+
+
+class UserUpdate(SQLModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
+    hashed_password: str | None = None
+    apartment_id: int | None = None
