@@ -16,6 +16,10 @@ class ApartmentPublic(ApartmentBase):
     id: int
 
 
+class ApartmentPublicWithUsers(ApartmentPublic):
+    users: list["User"] | None = []
+
+
 class ApartmentCreate(ApartmentBase):
     pass
 
@@ -35,10 +39,15 @@ class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     hashed_password: str = Field()
     apartment: Apartment | None = Relationship(back_populates="users")
+    items: list["Item"] | None = Relationship(back_populates="users")
 
 
 class UserPublic(UserBase):
     id: int
+
+
+class UserPublicWithItems(UserPublic):
+    items: list["Item"] | None = []
 
 
 class UserCreate(UserBase):
@@ -67,10 +76,15 @@ class ItemBase(SQLModel):
 class Item(ItemBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     apartment: Apartment = Relationship(back_populates="items")
+    users: list[User] | None = Relationship(back_populates="items")
 
 
 class ItemPublic(ItemBase):
     id: int
+
+
+class ItemPublicWithUsers(ItemBase):
+    users: list[User] | None = []
 
 
 class ItemCreate(ItemBase):
@@ -85,3 +99,8 @@ class ItemUpdate(SQLModel):
     yearly_depreciation: float | None = None
     minimum_value: float | None = None
     minimum_value_pct: float | None = None
+
+
+class UserItems(SQLModel, table=True):
+    user_id: int | None = Field(foreign_key="user.id", primary_key=True)
+    item_id: int | None = Field(foreign_key="item.id", primary_key=True)

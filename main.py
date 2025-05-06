@@ -6,10 +6,17 @@ from src.models import (
     Apartment,
     ApartmentCreate,
     ApartmentPublic,
+    ApartmentPublicWithUsers,
     ApartmentUpdate,
+    Item,
+    ItemCreate,
+    ItemPublic,
+    ItemPublicWithUsers,
+    ItemUpdate,
     User,
     UserCreate,
     UserPublic,
+    UserPublicWithItems,
     UserUpdate,
 )
 
@@ -63,7 +70,7 @@ def fetch_apartments(
     return apartments
 
 
-@app.get("/apartments/{apartment_id}", response_model=ApartmentPublic)
+@app.get("/apartments/{apartment_id}", response_model=ApartmentPublicWithUsers)
 def fetch_apartment(*, session: Session = Depends(get_session), apartment_id: int):
     apartment = session.get(Apartment, apartment_id)
     if not apartment:
@@ -86,7 +93,7 @@ def update_apartment(
     session.add(db_apartment)
     session.commit()
     session.refresh(db_apartment)
-    return db_apartment 
+    return db_apartment
 
 
 @app.delete("/apartments/{apartment_id}")
@@ -121,7 +128,7 @@ def fetch_users(
     return users
 
 
-@app.get("/users/{user_id}", response_model=UserPublic)
+@app.get("/users/{user_id}", response_model=UserPublicWithItems)
 def fetch_user(*, session: Session = Depends(get_session), user_id: int):
     user = session.get(User, user_id)
     if not user:
@@ -150,5 +157,58 @@ def delete_user(*, session: Session = Depends(get_session), user_id: int):
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     session.delete(db_user)
+    session.commit()
+    return {"ok": True}
+
+
+@app.post("/items/", response_model=ItemPublic)
+def add_item(*, session: Session = Depends(get_session), item: ItemCreate):
+    db_item = User.model_validate(item)
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+
+
+@app.get("/items/", response_model=list[ItemPublic])
+def fetch_items(
+    *,
+    session: Session = Depends(get_session),
+    offset: int = 0,
+    limit: int = Query(default=10, le=10),
+):
+    items = session.exec(select(Item).offset(offset).limit(limit)).all()
+    return items
+
+
+@app.get("/items/{item_id}", response_model=ItemPublicWithUsers)
+def fetch_item(*, session: Session = Depends(get_session), item_id: int):
+    item = session.get(Item, item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return item
+
+
+@app.patch("/items/{item_id}", response_model=ItemPublic)
+def update_item(
+    *, session: Session = Depends(get_session), item_id: int, item: ItemUpdate
+):
+    db_item = session.get(User, item_id)
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    item_data = item.model_dump(exclude_unset=True)
+    db_item.sqlmodel_update(item_data)
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+
+
+@app.delete("/items/{item_id}")
+def delete_item(*, session: Session = Depends(get_session), item_id: int):
+    db_item = session.get(Item, item_id)
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    session.delete(db_item)
     session.commit()
     return {"ok": True}
