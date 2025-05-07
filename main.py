@@ -140,7 +140,7 @@ def fetch_user(*, session: Session = Depends(get_session), user_id: int):
 def update_user(
     *, session: Session = Depends(get_session), user_id: int, user: UserUpdate
 ):
-    db_user = session.get(User, user_id)
+    db_user = session.get(Item, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     user_data = user.model_dump(exclude_unset=True)
@@ -161,16 +161,21 @@ def delete_user(*, session: Session = Depends(get_session), user_id: int):
     return {"ok": True}
 
 
-@app.post("/items/", response_model=ItemPublic)
+@app.post("/items/", response_model=ItemPublicWithUsers)
 def add_item(*, session: Session = Depends(get_session), item: ItemCreate):
-    db_item = User.model_validate(item)
+    if len(item.user_ids) == 0:
+        raise HTTPException(status_code=400, detail="Item must have at least one user")
+    users = session.exec(select(User).where(User.id.in_ item.user_ids)).all()
+
+    db_item = Item.model_validate(item)
+    db_item.users = list(users)
     session.add(db_item)
     session.commit()
     session.refresh(db_item)
     return db_item
 
 
-@app.get("/items/", response_model=list[ItemPublic])
+@app.get("/items/", response_model=list[ItemPublicWithUsers])
 def fetch_items(
     *,
     session: Session = Depends(get_session),
