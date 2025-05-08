@@ -33,6 +33,11 @@ class UserItems(SQLModel, table=True):
     item_id: int | None = Field(foreign_key="item.id", primary_key=True)
 
 
+class UserItemsPublic(SQLModel):
+    user_id: int
+    item_id: int
+
+
 class UserBase(SQLModel):
     first_name: str
     last_name: str
@@ -93,7 +98,7 @@ class ItemPublicWithUsers(ItemPublic):
 
 
 class ItemCreate(ItemBase):
-    user_ids: list[int]
+    pass
 
 
 class ItemUpdate(SQLModel):

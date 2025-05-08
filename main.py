@@ -163,13 +163,14 @@ def delete_user(*, session: Session = Depends(get_session), user_id: int):
 
 @app.post("/items/", response_model=ItemPublicWithUsers)
 def add_item(*, session: Session = Depends(get_session), item: ItemCreate):
-    if len(item.user_ids) == 0:
-        raise HTTPException(status_code=400, detail="Item must have at least one user")
-    users = session.exec(select(User).where(User.id.in_ item.user_ids)).all()
-
     db_item = Item.model_validate(item)
-    db_item.users = list(users)
     session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    apartment = session.get(Apartment, db_item.apartment.id)
+    if not apartment:
+        raise HTTPException(status_code=404, detail="Apartment not found")
+    db_item.users = apartment.users
     session.commit()
     session.refresh(db_item)
     return db_item
@@ -217,3 +218,43 @@ def delete_item(*, session: Session = Depends(get_session), item_id: int):
     session.delete(db_item)
     session.commit()
     return {"ok": True}
+
+
+@app.patch("/items/{item_id}/add/{user_id}", response_model=ItemPublicWithUsers)
+def add_user_from_item(
+    *, session: Session = Depends(get_session), item_id: int, user_id: int
+):
+    db_item = session.get(Item, item_id)
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    db_user = session.get(User, user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if db_user in db_item.users:
+        raise HTTPException(status_code=409, detail="User is already assigned to item")
+    else:
+        db_item.users.append(db_user)
+
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+
+
+@app.patch("/items/{item_id}/remove/{user_id}", response_model=ItemPublicWithUsers)
+def remove_user_from_item(
+    *, session: Session = Depends(get_session), item_id: int, user_id: int
+):
+    db_item = session.get(Item, item_id)
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    db_user = session.get(User, user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if db_user in db_item.users:
+        db_item.users.remove(db_user)
+    else:
+        raise HTTPException(status_code=404, detail="User was not item owner")
+
+    session.commit()
+    session.refresh(db_item)
+    return db_item
