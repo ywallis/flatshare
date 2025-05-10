@@ -276,13 +276,39 @@ def user_move_in(
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
-    if db_user.apartment == db_apartment.id:
-        raise HTTPException(status_code=400, detail="User already in apartment")
+    if db_user.apartment is not None:
+        raise HTTPException(status_code=400, detail="User already in an apartment")
     db_apartment.users.append(db_user)
     for item in db_apartment.items:
         if item.id not in exclude_items:
             db_user.items.append(item)
 
+    session.commit()
+    session.refresh(db_user)
+    return db_user
+@app.post(
+    "/apartment/{apartment_id}/move_out/{user_id}", response_model=UserPublicWithItems
+)
+def user_move_out(
+    *,
+    session: Session = Depends(get_session),
+    apartment_id: int,
+    user_id: int,
+):
+
+    db_apartment = session.get(Apartment, apartment_id)
+    if not db_apartment:
+        raise HTTPException(status_code=404, detail="Apartment not found")
+    db_user = session.get(User, user_id)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if db_user.apartment is None:
+        raise HTTPException(status_code=400, detail="User has no apartment")
+    if db_user.apartment.id != db_apartment.id:
+        raise HTTPException(status_code=400, detail="User not in apartment")
+
+    db_user.apartment = None
+    db_user.items = []
     session.commit()
     session.refresh(db_user)
     return db_user
