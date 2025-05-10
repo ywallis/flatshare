@@ -3,11 +3,11 @@ from fastapi.exceptions import HTTPException
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from src.models import (
-    Apartment,
-    ApartmentCreate,
-    ApartmentPublic,
-    ApartmentPublicWithUsers,
-    ApartmentUpdate,
+    Flat,
+    FlatCreate,
+    FlatPublic,
+    FlatPublicWithUsers,
+    FlatUpdate,
     Item,
     ItemCreate,
     ItemPublic,
@@ -48,60 +48,60 @@ def on_startup():
     create_db_and_tables()
 
 
-@app.post("/apartments/", response_model=ApartmentPublic)
-def add_apartment(
-    *, session: Session = Depends(get_session), apartment: ApartmentCreate
+@app.post("/flats/", response_model=FlatPublic)
+def add_flat(
+    *, session: Session = Depends(get_session), flat: FlatCreate
 ):
-    db_apartment = Apartment.model_validate(apartment)
-    session.add(db_apartment)
+    db_flat = Flat.model_validate(flat)
+    session.add(db_flat)
     session.commit()
-    session.refresh(db_apartment)
-    return db_apartment
+    session.refresh(db_flat)
+    return db_flat
 
 
-@app.get("/apartments/", response_model=list[ApartmentPublic])
-def fetch_apartments(
+@app.get("/flats/", response_model=list[FlatPublic])
+def fetch_flats(
     *,
     session: Session = Depends(get_session),
     offset: int = 0,
     limit: int = Query(default=10, le=10),
 ):
-    apartments = session.exec(select(Apartment).offset(offset).limit(limit)).all()
-    return apartments
+    flats = session.exec(select(Flat).offset(offset).limit(limit)).all()
+    return flats
 
 
-@app.get("/apartments/{apartment_id}", response_model=ApartmentPublicWithUsers)
-def fetch_apartment(*, session: Session = Depends(get_session), apartment_id: int):
-    apartment = session.get(Apartment, apartment_id)
-    if not apartment:
-        raise HTTPException(status_code=404, detail="Apartment not found")
-    return apartment
+@app.get("/flats/{flat_id}", response_model=FlatPublicWithUsers)
+def fetch_flat(*, session: Session = Depends(get_session), flat_id: int):
+    flat = session.get(Flat, flat_id)
+    if not flat:
+        raise HTTPException(status_code=404, detail="Flat not found")
+    return flat
 
 
-@app.patch("/apartments/{apartment_id}", response_model=ApartmentPublic)
-def update_apartment(
+@app.patch("/flats/{flat_id}", response_model=FlatPublic)
+def update_flat(
     *,
     session: Session = Depends(get_session),
-    apartment_id: int,
-    apartment: ApartmentUpdate,
+    flat_id: int,
+    flat: FlatUpdate,
 ):
-    db_apartment = session.get(Apartment, apartment_id)
-    if not db_apartment:
-        raise HTTPException(status_code=404, detail="Apartment not found")
-    apartment_data = apartment.model_dump(exclude_unset=True)
-    db_apartment.sqlmodel_update(apartment_data)
-    session.add(db_apartment)
+    db_flat = session.get(Flat, flat_id)
+    if not db_flat:
+        raise HTTPException(status_code=404, detail="Flat not found")
+    flat_data = flat.model_dump(exclude_unset=True)
+    db_flat.sqlmodel_update(flat_data)
+    session.add(db_flat)
     session.commit()
-    session.refresh(db_apartment)
-    return db_apartment
+    session.refresh(db_flat)
+    return db_flat
 
 
-@app.delete("/apartments/{apartment_id}")
-def delete_apartment(*, session: Session = Depends(get_session), apartment_id: int):
-    db_apartment = session.get(User, apartment_id)
-    if not db_apartment:
-        raise HTTPException(status_code=404, detail="Apartment not found")
-    session.delete(db_apartment)
+@app.delete("/flats/{flat_id}")
+def delete_flat(*, session: Session = Depends(get_session), flat_id: int):
+    db_flat = session.get(User, flat_id)
+    if not db_flat:
+        raise HTTPException(status_code=404, detail="Flat not found")
+    session.delete(db_flat)
     session.commit()
     return {"ok": True}
 
@@ -167,10 +167,10 @@ def add_item(*, session: Session = Depends(get_session), item: ItemCreate):
     session.add(db_item)
     session.commit()
     session.refresh(db_item)
-    apartment = session.get(Apartment, db_item.apartment.id)
-    if not apartment:
-        raise HTTPException(status_code=404, detail="Apartment not found")
-    db_item.users = apartment.users
+    flat = session.get(Flat, db_item.flat.id)
+    if not flat:
+        raise HTTPException(status_code=404, detail="Flat not found")
+    db_item.users = flat.users
     session.commit()
     session.refresh(db_item)
     return db_item
@@ -261,25 +261,25 @@ def remove_user_from_item(
 
 
 @app.post(
-    "/apartment/{apartment_id}/move_in/{user_id}", response_model=UserPublicWithItems
+    "/flat/{flat_id}/move_in/{user_id}", response_model=UserPublicWithItems
 )
 def user_move_in(
     *,
     session: Session = Depends(get_session),
-    apartment_id: int,
+    flat_id: int,
     user_id: int,
     exclude_items: list[int],
 ):
-    db_apartment = session.get(Apartment, apartment_id)
-    if not db_apartment:
-        raise HTTPException(status_code=404, detail="Apartment not found")
+    db_flat = session.get(Flat, flat_id)
+    if not db_flat:
+        raise HTTPException(status_code=404, detail="Flat not found")
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
-    if db_user.apartment is not None:
-        raise HTTPException(status_code=400, detail="User already in an apartment")
-    db_apartment.users.append(db_user)
-    for item in db_apartment.items:
+    if db_user.flat is not None:
+        raise HTTPException(status_code=400, detail="User already in an flat")
+    db_flat.users.append(db_user)
+    for item in db_flat.items:
         if item.id not in exclude_items:
             db_user.items.append(item)
 
@@ -287,27 +287,27 @@ def user_move_in(
     session.refresh(db_user)
     return db_user
 @app.post(
-    "/apartment/{apartment_id}/move_out/{user_id}", response_model=UserPublicWithItems
+    "/flat/{flat_id}/move_out/{user_id}", response_model=UserPublicWithItems
 )
 def user_move_out(
     *,
     session: Session = Depends(get_session),
-    apartment_id: int,
+    flat_id: int,
     user_id: int,
 ):
 
-    db_apartment = session.get(Apartment, apartment_id)
-    if not db_apartment:
-        raise HTTPException(status_code=404, detail="Apartment not found")
+    db_flat = session.get(Flat, flat_id)
+    if not db_flat:
+        raise HTTPException(status_code=404, detail="Flat not found")
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
-    if db_user.apartment is None:
-        raise HTTPException(status_code=400, detail="User has no apartment")
-    if db_user.apartment.id != db_apartment.id:
-        raise HTTPException(status_code=400, detail="User not in apartment")
+    if db_user.flat is None:
+        raise HTTPException(status_code=400, detail="User has no flat")
+    if db_user.flat.id != db_flat.id:
+        raise HTTPException(status_code=400, detail="User not in flat")
 
-    db_user.apartment = None
+    db_user.flat = None
     db_user.items = []
     session.commit()
     session.refresh(db_user)

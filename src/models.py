@@ -2,29 +2,29 @@ from datetime import datetime
 from sqlmodel import Field, Relationship, SQLModel
 
 
-class ApartmentBase(SQLModel):
+class FlatBase(SQLModel):
     name: str
 
 
-class Apartment(ApartmentBase, table=True):
+class Flat(FlatBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    users: list["User"] = Relationship(back_populates="apartment")
-    items: list["Item"] = Relationship(back_populates="apartment")
+    users: list["User"] = Relationship(back_populates="flat")
+    items: list["Item"] = Relationship(back_populates="flat")
 
 
-class ApartmentPublic(ApartmentBase):
+class FlatPublic(FlatBase):
     id: int
 
 
-class ApartmentPublicWithUsers(ApartmentPublic):
+class FlatPublicWithUsers(FlatPublic):
     users: list["UserPublic"] | None = Field(default_factory=list)
 
 
-class ApartmentCreate(ApartmentBase):
+class FlatCreate(FlatBase):
     pass
 
 
-class ApartmentUpdate(SQLModel):
+class FlatUpdate(SQLModel):
     name: str | None = None
 
 
@@ -42,13 +42,13 @@ class UserBase(SQLModel):
     first_name: str
     last_name: str
     email: str
-    apartment_id: int | None = Field(default=None, foreign_key="apartment.id")
+    flat_id: int | None = Field(default=None, foreign_key="flat.id")
 
 
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     hashed_password: str = Field()
-    apartment: Apartment | None = Relationship(back_populates="users")
+    flat: Flat | None = Relationship(back_populates="users")
     items: list["Item"] = Relationship(back_populates="users", link_model=UserItems)
 
 
@@ -69,12 +69,12 @@ class UserUpdate(SQLModel):
     last_name: str | None = None
     email: str | None = None
     hashed_password: str | None = None
-    apartment_id: int | None = None
+    flat_id: int | None = None
 
 
 class ItemBase(SQLModel):
     name: str
-    apartment_id: int | None = Field(default=None, foreign_key="apartment.id")
+    flat_id: int | None = Field(default=None, foreign_key="flat.id")
     is_bill: bool
     initial_value: float
     purchase_date: datetime
@@ -85,7 +85,7 @@ class ItemBase(SQLModel):
 
 class Item(ItemBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    apartment: Apartment = Relationship(back_populates="items")
+    flat: Flat = Relationship(back_populates="items")
     users: list[User] = Relationship(back_populates="items", link_model=UserItems)
 
 
@@ -129,3 +129,7 @@ class TransactionCreate(TransactionBase):
 
 class TransactionUpdate(SQLModel):
     paid: bool
+
+
+class TransactionPublic(TransactionBase):
+    id: int
