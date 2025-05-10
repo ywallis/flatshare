@@ -109,3 +109,23 @@ class ItemUpdate(SQLModel):
     yearly_depreciation: float | None = None
     minimum_value: float | None = None
     minimum_value_pct: float | None = None
+
+
+class TransactionBase(SQLModel):
+    creditor_id: int = Field(foreign_key="user.id")
+    debtor_id: int = Field(foreign_key="user.id")
+    item_id: int = Field(foreign_key="item.id")
+    amount: float
+    paid: bool
+
+
+class Transaction(TransactionBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+
+class TransactionCreate(TransactionBase):
+    pass
+
+
+class TransactionUpdate(SQLModel):
+    paid: bool
