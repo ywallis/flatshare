@@ -50,6 +50,14 @@ class User(UserBase, table=True):
     hashed_password: str = Field()
     flat: Flat | None = Relationship(back_populates="users")
     items: list["Item"] = Relationship(back_populates="users", link_model=UserItems)
+    credits: list["Transaction"] = Relationship(
+        back_populates="creditor",
+        sa_relationship_kwargs={"foreign_keys": "[Transaction.creditor_id]"},
+    )
+    debts: list["Transaction"] = Relationship(
+        back_populates="debtor",
+        sa_relationship_kwargs={"foreign_keys": "[Transaction.debtor_id]"},
+    )
 
 
 class UserPublic(UserBase):
@@ -121,6 +129,14 @@ class TransactionBase(SQLModel):
 
 class Transaction(TransactionBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    creditor: User = Relationship(
+        back_populates="credits",
+        sa_relationship_kwargs={"foreign_keys": "[Transaction.creditor_id]"},
+    )
+    debtor: User = Relationship(
+        back_populates="debts",
+        sa_relationship_kwargs={"foreign_keys": "[Transaction.debtor_id]"},
+    )
 
 
 class TransactionCreate(TransactionBase):
@@ -133,3 +149,9 @@ class TransactionUpdate(SQLModel):
 
 class TransactionPublic(TransactionBase):
     id: int
+
+
+class TransactionPublicWithUsers(TransactionBase):
+    id: int
+    creditor: UserPublic
+    debtor: UserPublic

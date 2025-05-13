@@ -13,6 +13,9 @@ from src.models import (
     ItemPublic,
     ItemPublicWithUsers,
     ItemUpdate,
+    Transaction,
+    TransactionCreate,
+    TransactionPublicWithUsers,
     User,
     UserCreate,
     UserPublic,
@@ -49,9 +52,7 @@ def on_startup():
 
 
 @app.post("/flats/", response_model=FlatPublic)
-def add_flat(
-    *, session: Session = Depends(get_session), flat: FlatCreate
-):
+def add_flat(*, session: Session = Depends(get_session), flat: FlatCreate):
     db_flat = Flat.model_validate(flat)
     session.add(db_flat)
     session.commit()
@@ -260,9 +261,7 @@ def remove_user_from_item(
     return db_item
 
 
-@app.post(
-    "/flat/{flat_id}/move_in/{user_id}", response_model=UserPublicWithItems
-)
+@app.post("/flat/{flat_id}/move_in/{user_id}", response_model=UserPublicWithItems)
 def user_move_in(
     *,
     session: Session = Depends(get_session),
@@ -286,16 +285,15 @@ def user_move_in(
     session.commit()
     session.refresh(db_user)
     return db_user
-@app.post(
-    "/flat/{flat_id}/move_out/{user_id}", response_model=UserPublicWithItems
-)
+
+
+@app.post("/flat/{flat_id}/move_out/{user_id}", response_model=UserPublicWithItems)
 def user_move_out(
     *,
     session: Session = Depends(get_session),
     flat_id: int,
     user_id: int,
 ):
-
     db_flat = session.get(Flat, flat_id)
     if not db_flat:
         raise HTTPException(status_code=404, detail="Flat not found")
@@ -312,3 +310,20 @@ def user_move_out(
     session.commit()
     session.refresh(db_user)
     return db_user
+
+
+@app.post("/transactions/", response_model=TransactionPublicWithUsers)
+def add_transaction(
+    *, session: Session = Depends(get_session), transaction: TransactionCreate
+):
+    db_transaction = Transaction.model_validate(transaction)
+    session.add(db_transaction)
+    session.commit()
+    session.refresh(db_transaction)
+    # flat = session.get(Flat, db_transaction.flat.id)
+    # if not flat:
+    #     raise HTTPException(status_code=404, detail="Flat not found")
+    # db_transaction.users = flat.users
+    # session.commit()
+    # session.refresh(db_transaction)
+    return db_transaction
