@@ -1,12 +1,11 @@
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session
 
-
 from src.models import (
     Item,
-    Transaction,
-    User,
 )
+from src.models import Transaction
+from src.models import User
 
 
 def item_buy_in(session: Session, new_user: User, item: Item, date: str):

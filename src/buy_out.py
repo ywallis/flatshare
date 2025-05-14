@@ -3,9 +3,9 @@ from sqlmodel import Session
 
 from src.models import (
     Item,
-    Transaction,
-    User,
 )
+from src.models import Transaction
+from src.models import User
 
 
 def item_buy_out(session: Session, user_to_remove: User, item: Item, date: str):

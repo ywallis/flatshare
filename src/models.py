@@ -21,8 +21,8 @@ class FlatPublicWithUsers(FlatPublic):
 
 
 class FlatCreate(FlatBase):
-    pass
 
+    first_user_id: int
 
 class FlatUpdate(SQLModel):
     name: str | None = None
