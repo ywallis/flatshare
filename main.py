@@ -20,6 +20,7 @@ from src.models import (
     UserCreate,
     UserPublic,
     UserPublicWithItems,
+    UserPublicWithTransactions,
     UserUpdate,
 )
 
@@ -44,6 +45,28 @@ def get_session():
 
 def hash_password(password: str) -> str:
     return f"actuallynotahash{password}"
+
+
+def item_buy_in(session: Session, new_user: User, item: Item):
+    calculated_amount = (item.initial_value / len(item.users)) - (
+        item.initial_value / (len(item.users) + 1)
+    )
+    if item.id is None:
+        raise HTTPException(status_code=404, detail="Item needs to have a defined id")
+    if new_user.id is None:
+        raise HTTPException(status_code=404, detail="User needs to have a defined id")
+    for existing_user in item.users:
+        if existing_user.id is None:
+            raise HTTPException(status_code=404, detail="User needs to have a defined id")
+        new_transaction = Transaction(
+            creditor_id=existing_user.id,
+            debtor_id=new_user.id,
+            item_id=item.id,
+            amount=calculated_amount,
+            paid=False,
+        )
+        session.add(new_transaction)
+    session.commit()
 
 
 @app.on_event("startup")
@@ -131,6 +154,13 @@ def fetch_users(
 
 @app.get("/users/{user_id}", response_model=UserPublicWithItems)
 def fetch_user(*, session: Session = Depends(get_session), user_id: int):
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+@app.get("/users/{user_id}/transactions", response_model=UserPublicWithTransactions)
+def fetch_user_with_transactions(*, session: Session = Depends(get_session), user_id: int):
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -236,6 +266,7 @@ def add_user_from_item(
     else:
         db_item.users.append(db_user)
 
+    item_buy_in(session, db_user, db_item)
     session.commit()
     session.refresh(db_item)
     return db_item
@@ -320,10 +351,4 @@ def add_transaction(
     session.add(db_transaction)
     session.commit()
     session.refresh(db_transaction)
-    # flat = session.get(Flat, db_transaction.flat.id)
-    # if not flat:
-    #     raise HTTPException(status_code=404, detail="Flat not found")
-    # db_transaction.users = flat.users
-    # session.commit()
-    # session.refresh(db_transaction)
     return db_transaction

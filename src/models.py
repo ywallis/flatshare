@@ -64,6 +64,12 @@ class UserPublic(UserBase):
     id: int
 
 
+class UserPublicWithTransactions(UserBase):
+    id: int
+    credits: list["Transaction"] | None = Field(default_factory=list)
+    debts: list["Transaction"] | None = Field(default_factory=list)
+
+
 class UserPublicWithItems(UserPublic):
     items: list["Item"] | None = Field(default_factory=list)
 
@@ -102,7 +108,7 @@ class ItemPublic(ItemBase):
 
 
 class ItemPublicWithUsers(ItemPublic):
-    users: list[User] | None = []
+    users: list[UserPublic] = []
 
 
 class ItemCreate(ItemBase):
