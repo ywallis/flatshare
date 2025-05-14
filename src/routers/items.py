@@ -13,7 +13,7 @@ from src.models import (
     ItemUpdate,
 )
 from src.models import User
-from utils import get_session
+from src.utils import get_session
 
 router = APIRouter()
 

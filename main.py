@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from sqlmodel import SQLModel
 
 from src.routers import flats, items, transactions, users
-from utils import engine
+from src.utils import engine
 
 
 def create_db_and_tables():

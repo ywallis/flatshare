@@ -11,7 +11,7 @@ from src.models import (
     UserPublicWithTransactions,
     UserUpdate,
 )
-from utils import get_session, hash_password
+from src.utils import get_session, hash_password
 
 router = APIRouter()
 

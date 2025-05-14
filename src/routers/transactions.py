@@ -6,7 +6,7 @@ from src.models import (
     TransactionCreate,
     TransactionPublicWithUsers,
 )
-from utils import get_session
+from src.utils import get_session
 
 router = APIRouter()
 

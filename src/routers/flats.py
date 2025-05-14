@@ -12,7 +12,7 @@ from src.models import (
     FlatUpdate,
 )
 from src.models import User, UserPublicWithItems
-from utils import get_session
+from src.utils import get_session
 
 router = APIRouter()
 
