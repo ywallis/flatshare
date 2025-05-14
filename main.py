@@ -2,6 +2,8 @@ from fastapi import Depends, FastAPI, Query
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session, SQLModel, create_engine, select
 
+from src.buy_in import item_buy_in
+from src.buy_out import item_buy_out
 from src.models import (
     Flat,
     FlatCreate,
@@ -45,28 +47,6 @@ def get_session():
 
 def hash_password(password: str) -> str:
     return f"actuallynotahash{password}"
-
-
-def item_buy_in(session: Session, new_user: User, item: Item):
-    calculated_amount = (item.initial_value / len(item.users)) - (
-        item.initial_value / (len(item.users) + 1)
-    )
-    if item.id is None:
-        raise HTTPException(status_code=404, detail="Item needs to have a defined id")
-    if new_user.id is None:
-        raise HTTPException(status_code=404, detail="User needs to have a defined id")
-    for existing_user in item.users:
-        if existing_user.id is None:
-            raise HTTPException(status_code=404, detail="User needs to have a defined id")
-        new_transaction = Transaction(
-            creditor_id=existing_user.id,
-            debtor_id=new_user.id,
-            item_id=item.id,
-            amount=calculated_amount,
-            paid=False,
-        )
-        session.add(new_transaction)
-    session.commit()
 
 
 @app.on_event("startup")
@@ -159,8 +139,11 @@ def fetch_user(*, session: Session = Depends(get_session), user_id: int):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
 @app.get("/users/{user_id}/transactions", response_model=UserPublicWithTransactions)
-def fetch_user_with_transactions(*, session: Session = Depends(get_session), user_id: int):
+def fetch_user_with_transactions(
+    *, session: Session = Depends(get_session), user_id: int
+):
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -253,7 +236,7 @@ def delete_item(*, session: Session = Depends(get_session), item_id: int):
 
 @app.patch("/items/{item_id}/add/{user_id}", response_model=ItemPublicWithUsers)
 def add_user_from_item(
-    *, session: Session = Depends(get_session), item_id: int, user_id: int
+    *, session: Session = Depends(get_session), item_id: int, user_id: int, date: str
 ):
     db_item = session.get(Item, item_id)
     if not db_item:
@@ -263,10 +246,10 @@ def add_user_from_item(
         raise HTTPException(status_code=404, detail="User not found")
     if db_user in db_item.users:
         raise HTTPException(status_code=409, detail="User is already assigned to item")
-    else:
-        db_item.users.append(db_user)
 
-    item_buy_in(session, db_user, db_item)
+    item_buy_in(session, db_user, db_item, date)
+    db_item.users.append(db_user)
+
     session.commit()
     session.refresh(db_item)
     return db_item
@@ -274,7 +257,7 @@ def add_user_from_item(
 
 @app.patch("/items/{item_id}/remove/{user_id}", response_model=ItemPublicWithUsers)
 def remove_user_from_item(
-    *, session: Session = Depends(get_session), item_id: int, user_id: int
+    *, session: Session = Depends(get_session), item_id: int, user_id: int, date: str
 ):
     db_item = session.get(Item, item_id)
     if not db_item:
@@ -283,6 +266,7 @@ def remove_user_from_item(
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     if db_user in db_item.users:
+        item_buy_out(session, db_user, db_item, date)
         db_item.users.remove(db_user)
     else:
         raise HTTPException(status_code=404, detail="User was not item owner")
@@ -299,6 +283,7 @@ def user_move_in(
     flat_id: int,
     user_id: int,
     exclude_items: list[int],
+    date: str,
 ):
     db_flat = session.get(Flat, flat_id)
     if not db_flat:
@@ -311,6 +296,7 @@ def user_move_in(
     db_flat.users.append(db_user)
     for item in db_flat.items:
         if item.id not in exclude_items:
+            item_buy_in(session, db_user, item, date)
             db_user.items.append(item)
 
     session.commit()
@@ -324,6 +310,7 @@ def user_move_out(
     session: Session = Depends(get_session),
     flat_id: int,
     user_id: int,
+    date: str,
 ):
     db_flat = session.get(Flat, flat_id)
     if not db_flat:
@@ -335,6 +322,9 @@ def user_move_out(
         raise HTTPException(status_code=400, detail="User has no flat")
     if db_user.flat.id != db_flat.id:
         raise HTTPException(status_code=400, detail="User not in flat")
+
+    for item in db_user.items:
+        item_buy_out(session, db_user, item, date)
 
     db_user.flat = None
     db_user.items = []
