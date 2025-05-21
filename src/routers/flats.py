@@ -1,3 +1,4 @@
+from datetime import date
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session, select
@@ -84,7 +85,7 @@ def user_move_in(
     flat_id: int,
     user_id: int,
     exclude_items: list[int],
-    date: str,
+    date: date,
 ):
     db_flat = session.get(Flat, flat_id)
     if not db_flat:
@@ -111,7 +112,7 @@ def user_move_out(
     session: Session = Depends(get_session),
     flat_id: int,
     user_id: int,
-    date: str,
+    date: date,
 ):
     db_flat = session.get(Flat, flat_id)
     if not db_flat:

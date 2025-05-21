@@ -1,18 +1,20 @@
+from datetime import date
+
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session, select
 
 from src.buy_in import item_buy_in
 from src.buy_out import item_buy_out
-from src.models import Flat
 from src.models import (
+    Flat,
     Item,
     ItemCreate,
     ItemPublic,
     ItemPublicWithUsers,
     ItemUpdate,
+    User,
 )
-from src.models import User
 from src.utils import get_session
 
 router = APIRouter()
@@ -79,7 +81,7 @@ def delete_item(*, session: Session = Depends(get_session), item_id: int):
 
 @router.patch("/items/{item_id}/add/{user_id}", response_model=ItemPublicWithUsers)
 def add_user_from_item(
-    *, session: Session = Depends(get_session), item_id: int, user_id: int, date: str
+    *, session: Session = Depends(get_session), item_id: int, user_id: int, date: date
 ):
     db_item = session.get(Item, item_id)
     if not db_item:
@@ -100,7 +102,7 @@ def add_user_from_item(
 
 @router.patch("/items/{item_id}/remove/{user_id}", response_model=ItemPublicWithUsers)
 def remove_user_from_item(
-    *, session: Session = Depends(get_session), item_id: int, user_id: int, date: str
+    *, session: Session = Depends(get_session), item_id: int, user_id: int, date: date
 ):
     db_item = session.get(Item, item_id)
     if not db_item:

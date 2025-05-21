@@ -1,6 +1,8 @@
+from datetime import date
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session
 
+from src.depreciation import depreciate_price
 from src.models import (
     Item,
 )
@@ -8,12 +10,13 @@ from src.models import Transaction
 from src.models import User
 
 
-def item_buy_out(session: Session, user_to_remove: User, item: Item, date: str):
+def item_buy_out(session: Session, user_to_remove: User, item: Item, date: date):
     if len(item.users) <= 1:
         raise HTTPException(
             status_code=500, detail="Item should have at least one user"
         )
-    leaving_user_share = item.initial_value / len(item.users)
+    depreciated_price = depreciate_price(item, date)
+    leaving_user_share = depreciated_price / len(item.users)
     buyout_amount = leaving_user_share / (len(item.users) - 1)
     if item.id is None:
         raise HTTPException(status_code=404, detail="Item needs to have a defined id")

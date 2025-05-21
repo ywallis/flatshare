@@ -11,7 +11,7 @@ A core assumption is that the splitting of purchases is handled outside this app
 
 This backend runs on FastAPI and uv. To get started, you must have uv installed.
 
-When installed, simply run `uv run fastapi dev` and the backend server will be 
+When installed, simply run `uv run fastapi dev` and the backend server will be running.
 
 ## Flat 
 

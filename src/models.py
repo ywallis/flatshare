@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -21,8 +21,8 @@ class FlatPublicWithUsers(FlatPublic):
 
 
 class FlatCreate(FlatBase):
-
     first_user_id: int
+
 
 class FlatUpdate(SQLModel):
     name: str | None = None
@@ -87,14 +87,16 @@ class UserUpdate(SQLModel):
 
 
 class ItemBase(SQLModel):
-    name: str
-    flat_id: int | None = Field(default=None, foreign_key="flat.id")
-    is_bill: bool
-    initial_value: float
-    purchase_date: datetime
-    yearly_depreciation: float
-    minimum_value: float | None
-    minimum_value_pct: float | None
+    name: str = Field(schema_extra={"examples": ["TV"]})
+    flat_id: int | None = Field(
+        default=None, foreign_key="flat.id", schema_extra={"examples": [1]}
+    )
+    is_bill: bool  
+    initial_value: float = Field(schema_extra={"examples": [1000.0]})
+    purchase_date: date = Field(schema_extra={"examples": ["2025-01-13"]})
+    yearly_depreciation: float = Field(schema_extra={"examples": [0.1]})
+    minimum_value: float | None = Field(schema_extra={"examples": [100.0]})
+    minimum_value_pct: float | None = Field(schema_extra={"examples": [0.1]})
 
 
 class Item(ItemBase, table=True):
