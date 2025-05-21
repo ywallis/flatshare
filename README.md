@@ -7,6 +7,12 @@ If a chair was bought by two roommates, and one is moving out without the chair,
 
 A core assumption is that the splitting of purchases is handled outside this app. The focus here is on moving in/out and transfer of ownership.
 
+## Dev quickstart
+
+This backend runs on FastAPI and uv. To get started, you must have uv installed.
+
+When installed, simply run `uv run fastapi dev` and the backend server will be 
+
 ## Flat 
 
 The core of the app is a shared flat.
