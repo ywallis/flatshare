@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
-from src.main import app
+from main import app
 from src.models import User
 
 
