@@ -7,6 +7,13 @@ If a chair was bought by two roommates, and one is moving out without the chair,
 
 A core assumption is that the splitting of purchases is handled outside this app. The focus here is on moving in/out and transfer of ownership.
 
+## TODO
+
+- Logging
+- Authentification
+- Parameterized testing
+- CI/CD
+
 ## Dev quickstart
 
 This backend runs on FastAPI and uv. To get started, you must have uv installed.
