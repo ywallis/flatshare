@@ -1,7 +1,6 @@
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
-from main import app
 from src.models import Flat, Item, Transaction, User
 
 
@@ -16,7 +15,6 @@ def test_add_user(client: TestClient):
             "password": "pw",
         },
     )
-    app.dependency_overrides.clear()
     data = response.json()
 
     assert response.status_code == 200
@@ -132,10 +130,6 @@ def test_update_user(client: TestClient, session: Session, user_1: User):
         f"/users/{user_1.id}",
         json={
             "first_name": "John",
-            # "last_name": None,
-            # "email": None,
-            # "hashed_password": None,
-            # "flat_id": None,
         },
     )
     print(user_1.id)
@@ -145,6 +139,7 @@ def test_update_user(client: TestClient, session: Session, user_1: User):
     data = response.json()
 
     assert data["first_name"] == "John"
+    assert data["last_name"] == "Wallis"
 
 
 def test_delete_user(client: TestClient, session: Session, user_1: User):

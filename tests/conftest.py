@@ -76,3 +76,67 @@ def item_1():
     )
     return item
 
+@pytest.fixture
+def flat_and_user_1(session: Session, flat_1: Flat, user_1: User):
+
+    session.add(user_1)
+    session.commit()
+    session.refresh(user_1)
+    flat_1.users.append(user_1)
+    session.add(flat_1)
+    session.commit()
+    session.refresh(flat_1)
+    return flat_1, user_1
+
+@pytest.fixture
+def flat_user_item(session: Session, flat_1: Flat, user_1: User, item_1: Item):
+    # Add and persist user
+    session.add(user_1)
+    session.commit()
+    session.refresh(user_1)
+
+    # Associate user with flat
+    flat_1.users.append(user_1)
+    session.add(flat_1)
+    session.commit()
+    session.refresh(flat_1)
+
+    # Assign all users of the flat to the item
+    item_1.flat_id = flat_1.id
+    item_1.users = flat_1.users
+    session.add(item_1)
+    session.commit()
+    session.refresh(item_1)
+
+    # Refresh linked objects for consistency
+    session.refresh(user_1)
+
+    return flat_1, user_1, item_1
+
+@pytest.fixture
+def flat_2_users_item(session: Session, flat_1: Flat, user_1: User, user_2: User, item_1: Item):
+    # Add and persist user
+    session.add(user_1)
+    session.add(user_2)
+    session.commit()
+    session.refresh(user_1)
+    session.refresh(user_2)
+
+    # Associate user with flat
+    flat_1.users.append(user_1)
+    flat_1.users.append(user_2)
+    session.add(flat_1)
+    session.commit()
+    session.refresh(flat_1)
+
+    # Assign all users of the flat to the item
+    item_1.flat_id = flat_1.id
+    item_1.users = flat_1.users
+    session.add(item_1)
+    session.commit()
+    session.refresh(item_1)
+
+    # Refresh linked objects for consistency
+    session.refresh(user_1)
+
+    return flat_1, user_1, user_2, item_1
