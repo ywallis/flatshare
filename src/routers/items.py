@@ -58,7 +58,7 @@ def fetch_item(*, session: Session = Depends(get_session), item_id: int):
 def update_item(
     *, session: Session = Depends(get_session), item_id: int, item: ItemUpdate
 ):
-    db_item = session.get(User, item_id)
+    db_item = session.get(Item, item_id)
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
     item_data = item.model_dump(exclude_unset=True)
@@ -80,8 +80,12 @@ def delete_item(*, session: Session = Depends(get_session), item_id: int):
 
 
 @router.patch("/items/{item_id}/add/{user_id}", response_model=ItemPublicWithUsers)
-def add_user_from_item(
-    *, session: Session = Depends(get_session), item_id: int, user_id: int, date: date
+def add_user_to_item(
+    *,
+    session: Session = Depends(get_session),
+    item_id: int,
+    user_id: int,
+    date: date = Query(...),
 ):
     db_item = session.get(Item, item_id)
     if not db_item:
