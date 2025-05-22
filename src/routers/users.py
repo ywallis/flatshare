@@ -60,7 +60,7 @@ def fetch_user_with_transactions(
 def update_user(
     *, session: Session = Depends(get_session), user_id: int, user: UserUpdate
 ):
-    db_user = session.get(Item, user_id)
+    db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     user_data = user.model_dump(exclude_unset=True)
