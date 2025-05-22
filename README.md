@@ -34,3 +34,11 @@ Moving in and moving out functions abstract all details from the user.
 Select which user should move in/out of an apartment, and you will receive a breakdown of what is owed to whom.
 
 In the case of a move-in, it's possible to exclude specific items.
+
+## Contributing
+
+- Clone the repo
+
+- Install uv
+
+- Run
