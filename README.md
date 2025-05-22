@@ -13,6 +13,8 @@ This backend runs on FastAPI and uv. To get started, you must have uv installed.
 
 When installed, simply run `uv run fastapi dev` and the backend server will be running.
 
+The production version will use a postgres database. The development version runs on SQLite for quick iterations.
+
 ## Flat 
 
 The core of the app is a shared flat.
