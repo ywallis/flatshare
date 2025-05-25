@@ -9,6 +9,7 @@ A core assumption is that the splitting of purchases is handled outside this app
 
 ## TODO
 
+- Add createdat/updatedat fields for all tables
 - Logging
 - Authentification
 - Parameterized testing

@@ -49,7 +49,7 @@ def test_update_flat(client: TestClient, flat_and_user_1: tuple[Flat, User]):
     assert data["name"] == "Elysium"
 
 
-def test_move_in(
+def test_move_in_no_exclusion(
     client: TestClient,
     session: Session,
     flat_user_item: tuple[Flat, User, Item],
@@ -77,6 +77,46 @@ def test_move_in(
     if not db_flat:
         raise Exception("Couldn't find flat")
     assert db_user_2 in db_flat.users
+
+    db_item = session.get(Item, item_1.id)
+    if not db_item:
+        raise Exception("Couldn't load item from DB")
+    assert db_user_2 in db_item.users
+
+
+def test_move_in_with_exclusion(
+    client: TestClient,
+    session: Session,
+    flat_user_item: tuple[Flat, User, Item],
+    user_2: User,
+):
+    flat, user_1, item_1 = flat_user_item
+    assert len(flat.users) == 1
+    assert len(flat.items) == 1
+    session.add(user_2)
+    session.commit()
+    session.refresh(user_2)
+
+    response = client.post(
+        f"/flats/{flat.id}/move_in/{user_2.id}?date=2026-01-01", json=[item_1.id]
+    )
+    assert response.status_code == 200
+
+    db_user_2 = session.get(User, user_2.id)
+    if not db_user_2:
+        raise Exception("Coudn't find user")
+    assert db_user_2.flat_id == flat.id
+    assert len(db_user_2.debts) == 0
+
+    db_flat = session.get(Flat, flat.id)
+    if not db_flat:
+        raise Exception("Couldn't find flat")
+    assert db_user_2 in db_flat.users
+
+    db_item = session.get(Item, item_1.id)
+    if not db_item:
+        raise Exception("Couldn't load item from DB")
+    assert db_user_2 not in db_item.users
 
 
 def test_move_out(
