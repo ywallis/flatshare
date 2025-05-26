@@ -7,37 +7,37 @@ from src.utils import get_session
 
 router = APIRouter()
 
-user_1 = User(
-    first_name="Yann",
-    last_name="Wallis",
-    email="y.w@g.c",
-    flat_id=None,
-    hashed_password="pw",
-)
-
-user_2 = User(
-    first_name="Ilias",
-    last_name="Trichopoulos",
-    email="i.t@g.c",
-    flat_id=None,
-    hashed_password="pw",
-)
-
-flat_1 = Flat(name="Olympus")
-
-item_1 = Item(
-    name="TV",
-    is_bill=False,
-    initial_value=1000.0,
-    purchase_date= datetime.strptime("2025-01-01", "%Y-%m-%d"),
-    yearly_depreciation=0.2,
-    minimum_value=None,
-    minimum_value_pct=None,
-)
-
 
 @router.post("/reset/")
 def reset_app(*, session: Session = Depends(get_session)):
+    user_1 = User(
+        first_name="Yann",
+        last_name="Wallis",
+        email="y.w@g.c",
+        flat_id=None,
+        hashed_password="pw",
+    )
+
+    user_2 = User(
+        first_name="Ilias",
+        last_name="Trichopoulos",
+        email="i.t@g.c",
+        flat_id=None,
+        hashed_password="pw",
+    )
+
+    flat_1 = Flat(name="Olympus")
+
+    item_1 = Item(
+        name="TV",
+        is_bill=False,
+        initial_value=1000.0,
+        purchase_date= datetime.strptime("2025-01-01", "%Y-%m-%d"),
+        yearly_depreciation=0.2,
+        minimum_value=None,
+        minimum_value_pct=None,
+    )
+
     for table in reversed(SQLModel.metadata.sorted_tables):
         session.execute(table.delete())
     session.commit()

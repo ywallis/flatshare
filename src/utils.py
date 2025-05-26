@@ -1,4 +1,5 @@
 from sqlmodel import Session, create_engine
+import bcrypt
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
@@ -12,5 +13,6 @@ def get_session():
         yield session
 
 
-def hash_password(password: str) -> str:
-    return f"actuallynotahash{password}"
+def hash_password(password: str) -> bytes:
+    hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+    return hashed_pw 

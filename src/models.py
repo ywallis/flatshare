@@ -1,8 +1,10 @@
 from datetime import date, datetime
 from sqlmodel import Field, Relationship, SQLModel
 
+from src.timestamps import TimestampMixin
 
-class FlatBase(SQLModel):
+
+class FlatBase(TimestampMixin, SQLModel):
     name: str
 
 
@@ -38,7 +40,7 @@ class UserItemsPublic(SQLModel):
     item_id: int
 
 
-class UserBase(SQLModel):
+class UserBase(TimestampMixin, SQLModel):
     first_name: str
     last_name: str
     email: str
@@ -86,7 +88,7 @@ class UserUpdate(SQLModel):
     flat_id: int | None = None
 
 
-class ItemBase(SQLModel):
+class ItemBase(TimestampMixin, SQLModel):
     name: str = Field(schema_extra={"examples": ["TV"]})
     flat_id: int | None = Field(
         default=None, foreign_key="flat.id", schema_extra={"examples": [1]}
@@ -127,7 +129,7 @@ class ItemUpdate(SQLModel):
     minimum_value_pct: float | None = None
 
 
-class TransactionBase(SQLModel):
+class TransactionBase(TimestampMixin, SQLModel):
     creditor_id: int = Field(foreign_key="user.id")
     debtor_id: int = Field(foreign_key="user.id")
     item_id: int = Field(foreign_key="item.id")
