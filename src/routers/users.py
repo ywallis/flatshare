@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session, select
 
-from src.models import Item
 from src.models import (
     User,
     UserCreate,
