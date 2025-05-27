@@ -77,6 +77,34 @@ def item_1():
     return item
 
 @pytest.fixture
+def item_2():
+    item = Item(
+        name="TV",
+        flat_id=None,
+        is_bill=False,
+        initial_value=1000.0,
+        purchase_date=datetime.strptime("2025-01-01", "%Y-%m-%d").date(),
+        yearly_depreciation=0.2,
+        minimum_value=900,
+        minimum_value_pct=None,
+    )
+    return item
+
+@pytest.fixture
+def item_3():
+    item = Item(
+        name="TV",
+        flat_id=None,
+        is_bill=False,
+        initial_value=1000.0,
+        purchase_date=datetime.strptime("2025-01-01", "%Y-%m-%d").date(),
+        yearly_depreciation=0.2,
+        minimum_value=None,
+        minimum_value_pct=0.95,
+    )
+    return item
+
+@pytest.fixture
 def flat_and_user_1(session: Session, flat_1: Flat, user_1: User):
 
     session.add(user_1)
