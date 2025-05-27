@@ -93,7 +93,7 @@ class ItemBase(TimestampMixin, SQLModel):
     flat_id: int | None = Field(
         default=None, foreign_key="flat.id", schema_extra={"examples": [1]}
     )
-    is_bill: bool  
+    is_bill: bool
     initial_value: float = Field(schema_extra={"examples": [1000.0]})
     purchase_date: date = Field(schema_extra={"examples": ["2025-01-13"]})
     yearly_depreciation: float = Field(schema_extra={"examples": [0.1]})
@@ -105,6 +105,7 @@ class Item(ItemBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     flat: Flat = Relationship(back_populates="items")
     users: list[User] = Relationship(back_populates="items", link_model=UserItems)
+    transactions: list["Transaction"] = Relationship(back_populates="item")
 
 
 class ItemPublic(ItemBase):
@@ -113,6 +114,10 @@ class ItemPublic(ItemBase):
 
 class ItemPublicWithUsers(ItemPublic):
     users: list[UserPublic] = []
+
+
+class ItemPublicWithTransactions(ItemPublic):
+    transactions: list["TransactionPublic"] = []
 
 
 class ItemCreate(ItemBase):
@@ -147,6 +152,7 @@ class Transaction(TransactionBase, table=True):
         back_populates="debts",
         sa_relationship_kwargs={"foreign_keys": "[Transaction.debtor_id]"},
     )
+    item: Item = Relationship(back_populates="transactions")
 
 
 class TransactionCreate(TransactionBase):

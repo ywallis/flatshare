@@ -11,6 +11,7 @@ from src.models import (
     Item,
     ItemCreate,
     ItemPublic,
+    ItemPublicWithTransactions,
     ItemPublicWithUsers,
     ItemUpdate,
     User,
@@ -48,6 +49,16 @@ def fetch_items(
 
 @router.get("/items/{item_id}", response_model=ItemPublicWithUsers)
 def fetch_item(*, session: Session = Depends(get_session), item_id: int):
+    item = session.get(Item, item_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return item
+
+
+@router.get("/items/{item_id}/transactions/", response_model=ItemPublicWithTransactions)
+def fetch_item_with_transactions(
+    *, session: Session = Depends(get_session), item_id: int
+):
     item = session.get(Item, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")

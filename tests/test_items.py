@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
+from src.buy_in import item_buy_in 
 from src.models import Flat, Item, User
 
 
@@ -113,12 +114,13 @@ def test_add_user_to_item(
     assert item in user_2.items
     assert len(user_2.debts) == 1
 
+
 def test_remove_user_from_item(
     client: TestClient,
     session: Session,
     flat_2_users_item: tuple[Flat, User, User, Item],
 ):
-    flat, user_1, user_2, item =flat_2_users_item 
+    flat, user_1, user_2, item = flat_2_users_item
     response = client.patch(
         f"/items/{item.id}/remove/{user_2.id}", params={"date": "2026-01-01"}
     )
@@ -132,3 +134,24 @@ def test_remove_user_from_item(
     assert item not in db_user_2.items
     assert len(db_user_2.items) == 0
     assert len(db_user_2.credits) == 1
+
+
+def test_fetch_item_with_transactions(
+    client: TestClient,
+    session: Session,
+    flat_user_item: tuple[Flat, User, Item],
+    user_2: User,
+):
+    flat, user_1, item = flat_user_item
+    session.add(user_2)
+    session.commit()
+    session.refresh(user_2)
+    item_buy_in(session, user_2, item, item.purchase_date)
+
+    response = client.get(f"/items/{item.id}/transactions/")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert len(data["transactions"]) == 1
+    assert data["transactions"][0]["item_id"] == item.id
