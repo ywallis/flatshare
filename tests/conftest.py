@@ -76,6 +76,7 @@ def item_1():
     )
     return item
 
+
 @pytest.fixture
 def item_2():
     item = Item(
@@ -89,6 +90,7 @@ def item_2():
         minimum_value_pct=None,
     )
     return item
+
 
 @pytest.fixture
 def item_3():
@@ -104,9 +106,9 @@ def item_3():
     )
     return item
 
+
 @pytest.fixture
 def flat_and_user_1(session: Session, flat_1: Flat, user_1: User):
-
     session.add(user_1)
     session.commit()
     session.refresh(user_1)
@@ -115,6 +117,7 @@ def flat_and_user_1(session: Session, flat_1: Flat, user_1: User):
     session.commit()
     session.refresh(flat_1)
     return flat_1, user_1
+
 
 @pytest.fixture
 def flat_user_item(session: Session, flat_1: Flat, user_1: User, item_1: Item):
@@ -141,8 +144,11 @@ def flat_user_item(session: Session, flat_1: Flat, user_1: User, item_1: Item):
 
     return flat_1, user_1, item_1
 
+
 @pytest.fixture
-def flat_2_users_item(session: Session, flat_1: Flat, user_1: User, user_2: User, item_1: Item):
+def flat_2_users_item(
+    session: Session, flat_1: Flat, user_1: User, user_2: User, item_1: Item
+):
     # Add and persist user
     session.add(user_1)
     session.add(user_2)
