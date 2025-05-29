@@ -1,4 +1,4 @@
-An app to help roommates deal with sharing the cost of furniture and it's depreciation.
+An app to help roommates deal with sharing the cost of furniture and its depreciation.
 
 This app was created mainly to deal with the pain of people moving in and out of a flat.
 If a chair was bought by two roommates, and one is moving out without the chair, how much will be owed?
@@ -21,6 +21,8 @@ This backend runs on FastAPI and uv. To get started, you must have uv installed.
 When installed, simply run `uv run fastapi dev` and the backend server will be running.
 
 The production version will use a postgres database. The development version runs on SQLite for quick iterations.
+
+You can also use the docker image at https://hub.docker.com/r/ywallis/oweyeah
 
 ## Flat 
 
