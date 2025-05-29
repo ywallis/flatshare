@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from sqlmodel import Session
 
-from src.buy_in import item_buy_in 
+from src.buy_in import item_buy_in
 from src.models import Flat, Item, User
 
 
