@@ -20,8 +20,10 @@ def depreciate_price(item: Item, date_for_calculation: date) -> float:
     if item.minimum_value is not None and depreciated_price < item.minimum_value:
         depreciated_price = item.minimum_value
 
-    if item.minimum_value_pct is not None and depreciated_price / item.initial_value < item.minimum_value_pct:
+    if (
+        item.minimum_value_pct is not None
+        and depreciated_price / item.initial_value < item.minimum_value_pct
+    ):
         depreciated_price = item.initial_value * item.minimum_value_pct
-
 
     return depreciated_price

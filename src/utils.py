@@ -15,4 +15,4 @@ def get_session():
 
 def hash_password(password: str) -> bytes:
     hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-    return hashed_pw 
+    return hashed_pw
