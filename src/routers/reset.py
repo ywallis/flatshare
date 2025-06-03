@@ -9,6 +9,7 @@ from src.utils import get_session
 
 router = APIRouter()
 
+
 @router.post("/reset/")
 def reset_app(*, session: SQLASession = Depends(get_session)):
     user_1 = User(
@@ -60,4 +61,3 @@ def reset_app(*, session: SQLASession = Depends(get_session)):
     session.commit()
 
     return {"deleted": True}
-

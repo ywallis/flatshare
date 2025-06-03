@@ -13,6 +13,7 @@ A core assumption is that the splitting of purchases is handled outside this app
 - Authentification
 - Parameterized testing
 - CI/CD
+- Integrate front end
 
 ## Dev quickstart
 
