@@ -33,5 +33,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ywallis/oweyeah-be:${{ steps.extract_tag.outputs.TAG }}
+          tags: |
+            ywallis/oweyeah-be:${{ steps.extract_tag.outputs.TAG }}
+            ywallis/oweyeah-be:latest
           file: ./docker/Dockerfile
