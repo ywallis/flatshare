@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from src.models import (
@@ -20,10 +21,15 @@ def add_user(*, session: Session = Depends(get_session), user: UserCreate):
     hashed_pw = hash_password(user.password)
     extra_data = {"hashed_password": hashed_pw}
     db_user = User.model_validate(user, update=extra_data)
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
-    return db_user
+    try:
+        session.add(db_user)
+        session.commit()
+        session.refresh(db_user)
+        return db_user
+
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(status_code=400, detail="Email already exists")
 
 
 @router.get("/users/", response_model=list[UserPublic])

@@ -5,7 +5,7 @@ from sqlmodel import SQLModel
 from datetime import datetime
 
 from src.models import User, Flat, Item  # adjust your imports
-from src.utils import get_session
+from src.utils import get_session, hash_password
 
 router = APIRouter()
 
@@ -17,7 +17,7 @@ def reset_app(*, session: SQLASession = Depends(get_session)):
         last_name="Wallis",
         email="y.w@g.c",
         flat_id=None,
-        hashed_password="pw",
+        hashed_password=hash_password("pw"),
     )
 
     user_2 = User(
@@ -25,7 +25,7 @@ def reset_app(*, session: SQLASession = Depends(get_session)):
         last_name="Trichopoulos",
         email="i.t@g.c",
         flat_id=None,
-        hashed_password="pw",
+        hashed_password=hash_password("pw"),
     )
 
     flat_1 = Flat(name="Olympus")

@@ -22,7 +22,8 @@ class FlatPublicWithUsers(FlatPublic):
     users: list["UserPublic"] | None = Field(default_factory=list)
 
 
-class FlatCreate(FlatBase):
+class FlatCreate(SQLModel):
+    name: str
     first_user_id: int
 
 
@@ -43,8 +44,9 @@ class UserItemsPublic(SQLModel):
 class UserBase(TimestampMixin, SQLModel):
     first_name: str
     last_name: str
-    email: str
+    email: str = Field(unique=True)
     flat_id: int | None = Field(default=None, foreign_key="flat.id")
+    active: bool = Field(default=True)
 
 
 class User(UserBase, table=True):
@@ -76,7 +78,11 @@ class UserPublicWithItems(UserPublic):
     items: list["Item"] | None = Field(default_factory=list)
 
 
-class UserCreate(UserBase):
+class UserCreate(SQLModel):
+    first_name: str
+    last_name: str
+    email: str = Field(unique=True)
+    flat_id: int | None = Field(default=None, foreign_key="flat.id")
     password: str
 
 
@@ -120,8 +126,17 @@ class ItemPublicWithTransactions(ItemPublic):
     transactions: list["TransactionPublic"] = []
 
 
-class ItemCreate(ItemBase):
-    pass
+class ItemCreate(SQLModel):
+    name: str = Field(schema_extra={"examples": ["TV"]})
+    flat_id: int | None = Field(
+        default=None, foreign_key="flat.id", schema_extra={"examples": [1]}
+    )
+    is_bill: bool
+    initial_value: float = Field(schema_extra={"examples": [1000.0]})
+    purchase_date: date = Field(schema_extra={"examples": ["2025-01-13"]})
+    yearly_depreciation: float = Field(schema_extra={"examples": [0.1]})
+    minimum_value: float | None = Field(schema_extra={"examples": [100.0]})
+    minimum_value_pct: float | None = Field(schema_extra={"examples": [0.1]})
 
 
 class ItemUpdate(SQLModel):
