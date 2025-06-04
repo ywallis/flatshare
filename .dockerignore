@@ -1,3 +1,5 @@
 database.db
 Session.vim
 .venv/
+app.log
+__pycache__/

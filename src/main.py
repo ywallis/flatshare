@@ -1,15 +1,10 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from sqlmodel import SQLModel
 
 from src.middleware import LoggingMiddleware
 from src.routers import flats, items, reset, transactions, users
-from src.utils import engine
-
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
+from src.utils import create_db_and_tables
 
 
 @asynccontextmanager

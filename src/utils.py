@@ -1,4 +1,4 @@
-from sqlmodel import Session, create_engine
+from sqlmodel import SQLModel, Session, create_engine
 import bcrypt
 
 sqlite_file_name = "database.db"
@@ -16,3 +16,7 @@ def get_session():
 def hash_password(password: str) -> bytes:
     hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
     return hashed_pw
+
+
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
