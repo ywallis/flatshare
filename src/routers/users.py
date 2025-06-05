@@ -3,6 +3,8 @@ from fastapi.exceptions import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
+from src.authentication import get_current_user
+from src.errors import unauthorized_error
 from src.models import (
     User,
     UserCreate,
@@ -44,30 +46,48 @@ def fetch_users(
 
 
 @router.get("/users/{user_id}", response_model=UserPublicWithItems)
-def fetch_user(*, session: Session = Depends(get_session), user_id: int):
+def fetch_user(
+    *,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    user_id: int,
+):
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    if user.flat_id != current_user.flat_id:
+        raise unauthorized_error
     return user
 
 
 @router.get("/users/{user_id}/transactions", response_model=UserPublicWithTransactions)
 def fetch_user_with_transactions(
-    *, session: Session = Depends(get_session), user_id: int
+    *,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    user_id: int,
 ):
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    if user.flat_id != current_user.flat_id:
+        raise unauthorized_error
     return user
 
 
 @router.patch("/users/{user_id}", response_model=UserPublic)
 def update_user(
-    *, session: Session = Depends(get_session), user_id: int, user: UserUpdate
+    *,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    user_id: int,
+    user: UserUpdate,
 ):
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
+    if db_user.id != current_user.id:
+        raise unauthorized_error
     user_data = user.model_dump(exclude_unset=True)
     db_user.sqlmodel_update(user_data)
     session.add(db_user)
@@ -77,10 +97,17 @@ def update_user(
 
 
 @router.delete("/users/{user_id}")
-def delete_user(*, session: Session = Depends(get_session), user_id: int):
+def delete_user(
+    *,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    user_id: int,
+):
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
+    if db_user.id != current_user.id:
+        raise unauthorized_error
     session.delete(db_user)
     session.commit()
     return {"ok": True}
