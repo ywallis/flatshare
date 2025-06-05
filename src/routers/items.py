@@ -4,8 +4,10 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session, select
 
+from src.authentication import get_current_user
 from src.buy_in import item_buy_in
 from src.buy_out import item_buy_out
+from src.errors import unauthorized_error
 from src.models import (
     Flat,
     Item,
@@ -48,30 +50,48 @@ def fetch_items(
 
 
 @router.get("/items/{item_id}", response_model=ItemPublicWithUsers)
-def fetch_item(*, session: Session = Depends(get_session), item_id: int):
+def fetch_item(
+    *,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    item_id: int,
+):
     item = session.get(Item, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    if item.flat_id != current_user.flat_id:
+        raise unauthorized_error
     return item
 
 
 @router.get("/items/{item_id}/transactions/", response_model=ItemPublicWithTransactions)
 def fetch_item_with_transactions(
-    *, session: Session = Depends(get_session), item_id: int
+    *,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    item_id: int,
 ):
     item = session.get(Item, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
+    if item.flat_id != current_user.flat_id:
+        raise unauthorized_error
     return item
 
 
 @router.patch("/items/{item_id}", response_model=ItemPublic)
 def update_item(
-    *, session: Session = Depends(get_session), item_id: int, item: ItemUpdate
+    *,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    item_id: int,
+    item: ItemUpdate,
 ):
     db_item = session.get(Item, item_id)
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
+    if db_item.flat_id != current_user.flat_id:
+        raise unauthorized_error
     item_data = item.model_dump(exclude_unset=True)
     db_item.sqlmodel_update(item_data)
     session.add(db_item)
@@ -81,10 +101,17 @@ def update_item(
 
 
 @router.delete("/items/{item_id}")
-def delete_item(*, session: Session = Depends(get_session), item_id: int):
+def delete_item(
+    *,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    item_id: int,
+):
     db_item = session.get(Item, item_id)
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
+    if db_item.flat_id != current_user.flat_id:
+        raise unauthorized_error
     session.delete(db_item)
     session.commit()
     return {"ok": True}
@@ -94,6 +121,7 @@ def delete_item(*, session: Session = Depends(get_session), item_id: int):
 def add_user_to_item(
     *,
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
     item_id: int,
     user_id: int,
     date: date = Query(...),
@@ -101,6 +129,8 @@ def add_user_to_item(
     db_item = session.get(Item, item_id)
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
+    if db_item.flat_id != current_user.flat_id:
+        raise unauthorized_error
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -117,11 +147,18 @@ def add_user_to_item(
 
 @router.patch("/items/{item_id}/remove/{user_id}", response_model=ItemPublicWithUsers)
 def remove_user_from_item(
-    *, session: Session = Depends(get_session), item_id: int, user_id: int, date: date
+    *,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    item_id: int,
+    user_id: int,
+    date: date,
 ):
     db_item = session.get(Item, item_id)
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
+    if db_item.flat_id != current_user.flat_id:
+        raise unauthorized_error
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
