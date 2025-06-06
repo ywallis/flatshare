@@ -1,15 +1,10 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from sqlmodel import SQLModel
 
 from src.middleware import LoggingMiddleware
-from src.routers import flats, items, reset, transactions, users
-from src.utils import engine
-
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
+from src.routers import flats, items, login, reset, transactions, users
+from src.utils import create_db_and_tables
 
 
 @asynccontextmanager
@@ -22,6 +17,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+
 app.add_middleware(LoggingMiddleware)
 
 
@@ -30,3 +26,4 @@ app.include_router(flats.router)
 app.include_router(items.router)
 app.include_router(transactions.router)
 app.include_router(reset.router)
+app.include_router(login.router)

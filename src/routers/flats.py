@@ -3,8 +3,10 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session, select
 
+from src.authentication import get_current_user
 from src.buy_in import item_buy_in
 from src.buy_out import item_buy_out
+from src.errors import unauthorized_error
 from src.models import (
     Flat,
     FlatCreate,
@@ -43,10 +45,17 @@ def fetch_flats(
 
 
 @router.get("/flats/{flat_id}", response_model=FlatPublicWithUsers)
-def fetch_flat(*, session: Session = Depends(get_session), flat_id: int):
+def fetch_flat(
+    *,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    flat_id: int,
+):
     flat = session.get(Flat, flat_id)
     if not flat:
         raise HTTPException(status_code=404, detail="Flat not found")
+    if flat.id != current_user.flat_id:
+        raise unauthorized_error
     return flat
 
 
@@ -54,12 +63,15 @@ def fetch_flat(*, session: Session = Depends(get_session), flat_id: int):
 def update_flat(
     *,
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
     flat_id: int,
     flat: FlatUpdate,
 ):
     db_flat = session.get(Flat, flat_id)
     if not db_flat:
         raise HTTPException(status_code=404, detail="Flat not found")
+    if db_flat.id != current_user.flat_id:
+        raise unauthorized_error
     flat_data = flat.model_dump(exclude_unset=True)
     db_flat.sqlmodel_update(flat_data)
     session.add(db_flat)
@@ -69,10 +81,17 @@ def update_flat(
 
 
 @router.delete("/flats/{flat_id}")
-def delete_flat(*, session: Session = Depends(get_session), flat_id: int):
+def delete_flat(
+    *,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+    flat_id: int,
+):
     db_flat = session.get(User, flat_id)
     if not db_flat:
         raise HTTPException(status_code=404, detail="Flat not found")
+    if db_flat.id != current_user.flat_id:
+        raise unauthorized_error
     session.delete(db_flat)
     session.commit()
     return {"ok": True}
@@ -82,6 +101,7 @@ def delete_flat(*, session: Session = Depends(get_session), flat_id: int):
 def user_move_in(
     *,
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
     flat_id: int,
     user_id: int,
     exclude_items: list[int],
@@ -90,6 +110,8 @@ def user_move_in(
     db_flat = session.get(Flat, flat_id)
     if not db_flat:
         raise HTTPException(status_code=404, detail="Flat not found")
+    if db_flat.id != current_user.flat_id:
+        raise unauthorized_error
     db_user = session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -110,6 +132,7 @@ def user_move_in(
 def user_move_out(
     *,
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
     flat_id: int,
     user_id: int,
     date: date,
@@ -117,6 +140,8 @@ def user_move_out(
     db_flat = session.get(Flat, flat_id)
     if not db_flat:
         raise HTTPException(status_code=404, detail="Flat not found")
+    if db_flat.id != current_user.flat_id:
+        raise unauthorized_error
     if len(db_flat.users) == 1:
         raise HTTPException(status_code=404, detail="User is the last user in the flat")
     db_user = session.get(User, user_id)

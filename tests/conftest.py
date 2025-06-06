@@ -5,7 +5,8 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
-from main import app
+from src.authentication import get_current_user
+from src.main import app
 from src.models import Flat, Item, User
 from src.utils import get_session
 
@@ -21,11 +22,15 @@ def session_fixture():
 
 
 @pytest.fixture(name="client")
-def client_fixture(session: Session):
+def client_fixture(session: Session, user_1: User):
     def get_session_override():
         return session
 
+    def get_current_user_override():
+        return user_1
+
     app.dependency_overrides[get_session] = get_session_override
+    app.dependency_overrides[get_current_user] = get_current_user_override 
 
     client = TestClient(app)
     yield client
