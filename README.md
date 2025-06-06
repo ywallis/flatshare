@@ -7,14 +7,6 @@ If a chair was bought by two roommates, and one is moving out without the chair,
 
 A core assumption is that the splitting of purchases is handled outside this app. The focus here is on moving in/out and transfer of ownership.
 
-## TODO
-
-- Logging
-- Authentification
-- Parameterized testing
-- CI/CD
-- Integrate front end
-
 ## Dev quickstart
 
 This backend runs on FastAPI and uv. To get started, you must have uv installed.
@@ -23,7 +15,7 @@ When installed, simply run `uv run fastapi dev` and the backend server will be r
 
 The production version will use a postgres database. The development version runs on SQLite for quick iterations.
 
-You can also use the docker image at https://hub.docker.com/r/ywallis/oweyeah
+You can also use the docker image at https://hub.docker.com/r/ywallis/oweyeah-be
 
 ## Flat 
 
@@ -46,6 +38,11 @@ Moving in and moving out functions abstract all details from the user.
 Select which user should move in/out of an apartment, and you will receive a breakdown of what is owed to whom.
 
 In the case of a move-in, it's possible to exclude specific items.
+
+## Authentification
+
+Most endpoints planned to be used in production already require authentication.
+A JWT can be aquired at the `token` endpoint with a user email and password.
 
 ## Contributing
 
