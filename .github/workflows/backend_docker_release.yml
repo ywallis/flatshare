@@ -29,7 +29,7 @@ jobs:
 
       
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
@@ -37,3 +37,4 @@ jobs:
             ywallis/oweyeah-be:${{ steps.extract_tag.outputs.TAG }}
             ywallis/oweyeah-be:latest
           file: ./docker/Dockerfile
+          platforms: linux/amd64, linux/arm64
