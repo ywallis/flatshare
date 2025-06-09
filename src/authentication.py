@@ -1,14 +1,15 @@
+import os
 from datetime import datetime, timedelta
+
+import jwt
+from dotenv import load_dotenv
 from fastapi import Depends
 from fastapi.exceptions import HTTPException
 from fastapi.security import OAuth2PasswordBearer
-import jwt
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
-from dotenv import load_dotenv
-import os
 from src.models import User
 from src.utils import get_session
 
