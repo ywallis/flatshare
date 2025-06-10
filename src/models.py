@@ -51,7 +51,7 @@ class UserBase(TimestampMixin, SQLModel):
 
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    hashed_password: str = Field()
+    hashed_password: str | None = Field(default=None)
     flat: Flat | None = Relationship(back_populates="users")
     items: list["Item"] = Relationship(back_populates="users", link_model=UserItems)
     credits: list["Transaction"] = Relationship(
@@ -84,6 +84,12 @@ class UserCreate(SQLModel):
     email: str = Field(unique=True)
     flat_id: int | None = Field(default=None, foreign_key="flat.id")
     password: str
+
+class UserCreateNP(SQLModel):
+    first_name: str
+    last_name: str
+    email: str = Field(unique=True)
+    flat_id: int | None = Field(default=None, foreign_key="flat.id")
 
 
 class UserUpdate(SQLModel):
