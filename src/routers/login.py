@@ -1,13 +1,13 @@
 from datetime import timedelta
 
-import jwt
 import requests
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import Session, select
-from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
+from sqlmodel import Session, select
+
 from src.authentication import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     Token,
@@ -51,7 +51,7 @@ async def login_google():
 @router.get(
     "/auth/google",
     response_model=Token,
-    summary="Handle Google OAuth callback and issue internal token",
+    summary="Handle Google OAuth callback and issue internal token. Creates new user if none exists.",
 )
 async def auth_google(code: str, session: Session = Depends(get_session)):
     """This endpoint handles the callback from Google after the user grants permission."""
@@ -99,9 +99,6 @@ async def auth_google(code: str, session: Session = Depends(get_session)):
             "https://www.googleapis.com/oauth2/v3/userinfo", headers=headers
         )
         user_info = resp.json()
-        print(user_info)
-        print(response)
-        print(idinfo)
         first_name = user_info.get("given_name")
         last_name = user_info.get("family_name")
         new_User = UserCreateNP(
@@ -119,12 +116,13 @@ async def auth_google(code: str, session: Session = Depends(get_session)):
     return Token(access_token=access_token, token_type="bearer")
 
 
-@router.post("/token")
+@router.post("/token", summary="Login endpoint for email/password")
 async def login_for_token(
     *,
     session: Session = Depends(get_session),
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Token:
+    """This endpoint allows logging in with a standard OAuth password request form. The email is used as username."""
     statement = select(User).where(User.email == form_data.username)
     user = session.exec(statement).one_or_none()
     if not user:

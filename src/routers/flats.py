@@ -1,4 +1,5 @@
 from datetime import date
+
 from fastapi import APIRouter, Depends, Query
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session, select
@@ -13,8 +14,9 @@ from src.models import (
     FlatPublic,
     FlatPublicWithUsers,
     FlatUpdate,
+    User,
+    UserPublicWithItems,
 )
-from src.models import User, UserPublicWithItems
 from src.utils import get_session
 
 router = APIRouter()
@@ -97,7 +99,11 @@ def delete_flat(
     return {"ok": True}
 
 
-@router.post("/flats/{flat_id}/move_in/{user_id}", response_model=UserPublicWithItems)
+@router.post(
+    "/flats/{flat_id}/move_in/{user_id}",
+    response_model=UserPublicWithItems,
+    summary="Trigger a move in at a specific date",
+)
 def user_move_in(
     *,
     session: Session = Depends(get_session),
@@ -107,6 +113,11 @@ def user_move_in(
     exclude_items: list[int],
     date: date,
 ):
+    """A move-in transaction is initiated. This means that:
+    - The user is added to the flat.
+    - The user is added to all items from that flat, except those listed in the `exclude_items` list
+    - Credits/debts corresponding with a buy-in to every non-excluded item are created"""
+
     db_flat = session.get(Flat, flat_id)
     if not db_flat:
         raise HTTPException(status_code=404, detail="Flat not found")
@@ -128,7 +139,11 @@ def user_move_in(
     return db_user
 
 
-@router.post("/flats/{flat_id}/move_out/{user_id}", response_model=UserPublicWithItems)
+@router.post(
+    "/flats/{flat_id}/move_out/{user_id}",
+    response_model=UserPublicWithItems,
+    summary="Trigger a move out at a specific date",
+)
 def user_move_out(
     *,
     session: Session = Depends(get_session),
@@ -137,6 +152,11 @@ def user_move_out(
     user_id: int,
     date: date,
 ):
+    """A move-out transaction is initiated. This means that:
+    - The user is removed from the flat.
+    - The user is removed from all items in that flat
+    - Credits/debts corresponding with a buy-out from every item are created"""
+
     db_flat = session.get(Flat, flat_id)
     if not db_flat:
         raise HTTPException(status_code=404, detail="Flat not found")
