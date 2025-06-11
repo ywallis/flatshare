@@ -85,6 +85,7 @@ class UserCreate(SQLModel):
     flat_id: int | None = Field(default=None, foreign_key="flat.id")
     password: str
 
+
 class UserCreateNP(SQLModel):
     first_name: str
     last_name: str
