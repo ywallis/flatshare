@@ -7,6 +7,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env: 
+      SECRET_KEY: "testing"
 
     steps:
       - uses: actions/checkout@v4
@@ -26,5 +28,5 @@ jobs:
       - name: Run tests
         run: uv run pytest
 
-      - name: Check formatting with black
-        run: uv run black --check src
+      - name: Check formatting with ruff
+        run: uv run ruff format --check

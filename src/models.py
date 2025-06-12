@@ -1,4 +1,5 @@
 from datetime import date, datetime
+
 from sqlmodel import Field, Relationship, SQLModel
 
 from src.timestamps import TimestampMixin
@@ -51,7 +52,7 @@ class UserBase(TimestampMixin, SQLModel):
 
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    hashed_password: str = Field()
+    hashed_password: str | None = Field(default=None)
     flat: Flat | None = Relationship(back_populates="users")
     items: list["Item"] = Relationship(back_populates="users", link_model=UserItems)
     credits: list["Transaction"] = Relationship(
@@ -86,11 +87,18 @@ class UserCreate(SQLModel):
     password: str
 
 
+class UserCreateNP(SQLModel):
+    first_name: str
+    last_name: str
+    email: str = Field(unique=True)
+    flat_id: int | None = Field(default=None, foreign_key="flat.id")
+
+
 class UserUpdate(SQLModel):
     first_name: str | None = None
     last_name: str | None = None
     email: str | None = None
-    hashed_password: str | None = None
+    password: str | None = None
     flat_id: int | None = None
 
 

@@ -88,7 +88,13 @@ def update_user(
         raise HTTPException(status_code=404, detail="User not found")
     if db_user.id != current_user.id:
         raise unauthorized_error
+
     user_data = user.model_dump(exclude_unset=True)
+
+    if user.password:
+        user_data["hashed_password"] = hash_password(user.password)
+        user_data.pop("password", None)
+
     db_user.sqlmodel_update(user_data)
     session.add(db_user)
     session.commit()

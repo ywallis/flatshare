@@ -126,6 +126,7 @@ def add_user_to_item(
     user_id: int,
     date: date = Query(...),
 ):
+    """This adds a User to an item and creates the associated credits/debts."""
     db_item = session.get(Item, item_id)
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -154,6 +155,7 @@ def remove_user_from_item(
     user_id: int,
     date: date,
 ):
+    """This removes a User from an item and creates the associated credits/debts."""
     db_item = session.get(Item, item_id)
     if not db_item:
         raise HTTPException(status_code=404, detail="Item not found")

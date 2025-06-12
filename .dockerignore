@@ -3,3 +3,4 @@ Session.vim
 .venv/
 app.log
 __pycache__/
+.env

@@ -30,7 +30,7 @@ def client_fixture(session: Session, user_1: User):
         return user_1
 
     app.dependency_overrides[get_session] = get_session_override
-    app.dependency_overrides[get_current_user] = get_current_user_override 
+    app.dependency_overrides[get_current_user] = get_current_user_override
 
     client = TestClient(app)
     yield client
